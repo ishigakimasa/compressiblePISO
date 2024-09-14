@@ -424,9 +424,9 @@ function solveEA(para, ua, va, pa, ea, eold, ρa, ρold, etemp, bea, buae, buaw,
     @unpack nx, ny, dx, dy, dt, alphaea, Cv, γ = para
     for j=2:ny+1
         for i=2:nx+1 
-            bea[i,j] = dx*dy/dt*ρold[i,j]*eold[i,j] +
-            0.125dy*(γ-1)*((ρa[i+1,j]*ua[i+1,j] + ρa[i,j]*ua[i,j])*(ua[i,j]^2 + va[i,j]^2 + ua[i+1,j]^2 + va[i+1,j]^2) - (ρa[i,j]*ua[i,j] + ρa[i-1,j]*ua[i-1,j])*(ua[i,j]^2 + va[i,j]^2 + ua[i-1,j]^2 + va[i-1,j]^2) ) +
-            0.125dx*(γ-1)*((ρa[i,j+1]*va[i,j+1] + ρa[i,j]*va[i,j])*(ua[i,j]^2 + va[i,j]^2 + ua[i,j+1]^2 + va[i,j+1]^2) - (ρa[i,j]*va[i,j] + ρa[i,j-1]*va[i,j-1])*(ua[i,j]^2 + va[i,j]^2 + ua[i,j-1]^2 + va[i,j-1]^2) )  +
+            bea[i,j] = dx*dy/dt*ρold[i,j]*eold[i,j] -
+            0.125dy*(γ-1)*(-(ρa[i+1,j]*ua[i+1,j] + ρa[i,j]*ua[i,j])*(ua[i,j]^2 + va[i,j]^2 + ua[i+1,j]^2 + va[i+1,j]^2) + (ρa[i,j]*ua[i,j] + ρa[i-1,j]*ua[i-1,j])*(ua[i,j]^2 + va[i,j]^2 + ua[i-1,j]^2 + va[i-1,j]^2) ) -
+            0.125dx*(γ-1)*(-(ρa[i,j+1]*va[i,j+1] + ρa[i,j]*va[i,j])*(ua[i,j]^2 + va[i,j]^2 + ua[i,j+1]^2 + va[i,j+1]^2) + (ρa[i,j]*va[i,j] + ρa[i,j-1]*va[i,j-1])*(ua[i,j]^2 + va[i,j]^2 + ua[i,j-1]^2 + va[i,j-1]^2) )  +
             0.5dy/dx/Cv*(0.5(k[i+1,j] + k[i,j])*((ua[i,j]^2 + va[i,j]^2) -(ua[i+1,j]^2 + va[i+1,j]^2)) - 0.5(k[i,j] + k[i-1,j])*(-(ua[i,j]^2 + va[i,j]^2) + (ua[i-1,j]^2 + va[i-1,j]^2))) + 
             0.5dx/dy/Cv*(0.5(k[i,j+1] + k[i,j])*((ua[i,j]^2 + va[i,j]^2) -(ua[i,j+1]^2 + va[i,j+1]^2)) - 0.5(k[i,j] + k[i,j-1])*(-(ua[i,j]^2 + va[i,j]^2) + (ua[i,j-1]^2 + va[i,j-1]^2))) +
             0.5*(ua[i+1,j] + ua[i,j])*(buae[i,j] + 4.0/3.0*0.5*(μ[i,j] + μ[i+1,j])*(ua[i+1,j] - ua[i,j]))*dy +

@@ -1,4 +1,4 @@
-\documentclass[a4paper,10pt,fleqn]{jsarticle}
+\documentclass[a4paper,10pt,fleqn,dvipdfmx]{jsarticle}
 %\documentclass[a4paper,10pt,fleqn]{jreport}
 %\documentclass[a4paper,10pt,fleqn]{jsbook}
 
@@ -10,6 +10,8 @@
 \usepackage{bm}
 \usepackage{amsmath,amssymb}
 \usepackage{ascmac}
+\usepackage{tikz}
+
 
 \usepackage[dvipdfmx, colorlinks=true, bookmarks=true, bookmarksnumbered=true,
 bookmarkstype=toc, linkcolor=blue, urlcolor=blue,
@@ -131,6 +133,49 @@ $p=(\gamma-1)(\rho e - 1/2\rho(u^2+v^2))$より
 とかける。
 
 \section{積分と離散化}
+\begin{figure}[hbpt]
+\centering
+\begin{tikzpicture}
+  \draw[step=1.5] (-3,-3) grid (4.5,4.5);
+
+ \coordinate [label=right:{P}] (P) at (0.75,0.75);
+ \fill (P) circle (2pt);
+ \coordinate [label=right:{N}] (N) at (0.75,2.25);
+ \fill (N) circle (2pt);
+ \coordinate [label=right:{S}] (S) at (0.75,-0.75);
+ \fill (S) circle (2pt);
+ \coordinate [label=right:{E}] (E) at (2.25,0.75);
+ \fill (E) circle (2pt);
+ \coordinate [label=right:{W}] (W) at (-0.75,0.75);
+ \fill (W) circle (2pt);
+ \coordinate [label=right:{EE}] (EE) at (3.75,0.75);
+ \fill (EE) circle (2pt);
+ \coordinate [label=right:{WW}] (WW) at (-2.25,0.75);
+ \fill (WW) circle (2pt);
+ \coordinate [label=right:{NN}] (NN) at (0.75,3.75);
+ \fill (NN) circle (2pt);
+ \coordinate [label=right:{SS}] (SS) at (0.75,-2.25);
+ \fill (SS) circle (2pt);
+
+ \coordinate [label=right:{NE}] (NE) at (2.25,2.25);
+ \fill (NE) circle (2pt);
+ \coordinate [label=right:{SE}] (SE) at (2.25,-0.75);
+ \fill (SE) circle (2pt);
+ \coordinate [label=right:{NW}] (NW) at (-0.75,2.25);
+ \fill (NW) circle (2pt);
+ \coordinate [label=right:{SW}] (SW) at (-0.75,-0.75);
+ \fill (SW) circle (2pt);
+
+\node(e) at (1.5,0.75) {e};
+\node(w) at (0,0.75) {w};
+\node(n) at (0.75,1.5) {n};
+\node(s) at (0.75,0) {s};
+
+\end{tikzpicture}
+\caption{cell coordinate} 
+\label{fig}
+\end{figure}
+
 $x,y$方向のセル幅を$\Delta x, \Delta y$として，方程式を積分する。すべて
 の物理量はセル中央で定義されるものとする。つまりコロケート格子を適用する。質量保
 存式(\ref{eq:mass1})を積分すると
@@ -138,7 +183,7 @@ $x,y$方向のセル幅を$\Delta x, \Delta y$として，方程式を積分す�
  \int_w^e dx \int_s^ndy \left(\frac{\partial \rho}{\partial t} + \frac{\partial}{\partial x}(\rho
  u) + \frac{\partial}{\partial y}(\rho  v) \right) =0
 \end{align}
-e, w, n, sは$+x, -x, +y, -y$方向のセル界面をそれぞれ表す。時間微分はEuler陰
+e, w, n, sは$+x, -x, +y, -y$方向のセル界面をそれぞれ表す。上図参照。時間微分はEuler陰
 解法で離散化する。時間刻みは$\Delta t$とする。
 \begin{align}
  \frac{\rho - \rho^n}{\Delta t} \Delta x \Delta y 
@@ -245,7 +290,194 @@ S_e &= \Delta y \frac{\gamma-1}{4}\rho u|_e(u_P^2+v_P^2 + u_E^2+v_E^2)
 \end{align}
 
 \section{圧力速度の連成}
+Issaらによる計算手順に基づいて，圧力速度の連成手順を示す。
 
+\subsection{エネルギー予測}
+\begin{align}
+ a_Pe_P^* 
+= \sum_{nb=E,W,N,S} a_{nb} e_{nb}^* + \frac{\Delta x \Delta y}{\Delta t}\rho^n_P e_P^n
+ +S_e
+\end{align}
+を用いて，エネルギーの予測値$e^*_P$を求める。上付き添字の*は予測値である
+ことを示す。これより温度の予測値$T^*$を求める。
+
+\subsection{速度の予測}
+\begin{align}
+ &a_Pu_P^* 
+= \sum_{nb} a_{nb} u_{nb}^* + \frac{\Delta x \Delta y}{\Delta t}\rho^n_P u_P^n
+ +S_u - \frac{\Delta y}{2}(p_E^n - p_W^n)\\
+ &a_Pv_P^* 
+= \sum_{nb} a_{nb} v_{nb}^* + \frac{\Delta x \Delta y}{\Delta t}\rho^n_P v_P^n
+ +S_v  - \frac{\Delta x}{2}(p_N^n - p_S^n)
+\end{align}
+を用いて，流速の予測値$u^*, v^*$を求める。
+
+\subsection{速度の修正}
+速度の予測式を以下のように変形する。
+\begin{align}
+ &\frac{a_P}{\rho^n} \rho^n u_P^* 
+= \sum_{nb} a_{nb} u_{nb}^* + \frac{\Delta x \Delta y}{\Delta t}\rho^n_P u_P^n
+ +S_u - \frac{\Delta y}{2}(p_E^n - p_W^n)\\
+ &\frac{a_P}{\rho^n}\rho^n v_P^* 
+= \sum_{nb} a_{nb} v_{nb}^* + \frac{\Delta x \Delta y}{\Delta t}\rho^n_P v_P^n
+ +S_v  - \frac{\Delta x}{2}(p_N^n - p_S^n)
+\end{align}
+速度の修正式を以下のようにする。
+\begin{align}
+ &\frac{a_P}{\rho^n} \rho^* u_P^{**} 
+= \sum_{nb} a_{nb} u_{nb}^* + \frac{\Delta x \Delta y}{\Delta t}\rho^n_P u_P^n
+ +S_u - \frac{\Delta y}{2}(p_E^* - p_W^*)\\
+ &\frac{a_P}{\rho^n}\rho^* v_P^{**} 
+= \sum_{nb} a_{nb} v_{nb}^* + \frac{\Delta x \Delta y}{\Delta t}\rho^n_P v_P^n
+ +S_v  - \frac{\Delta x}{2}(p_N^* - p_S^*)
+\end{align}
+
+$\widetilde{a_P}=a_P/\rho^n$，圧力の修正量を$p'=p^*-p^n$とすると
+\begin{align}
+& \rho^*u_P^{**}=\rho^n u_P^* - \frac{1}{\widetilde{a_P}}\frac{\Delta
+ y}{2}(p'_E-p'_W) \\
+& \rho^*v_P^{**}=\rho^n v_P^* - \frac{1}{\widetilde{a_P}}\frac{\Delta
+ x}{2}(p'_N-p'_S)
+\end{align}
+
+質量保存式より
+\begin{align}
+ \frac{\rho^* - \rho^n}{\Delta t} \Delta x \Delta y 
++ \left(\rho^* u^{**}|_e - \rho^* u^{**}|_w\right)\Delta y 
++ \left(\rho^* v^{**}|_n - \rho^* v^{**}|_s\right) \Delta x = 0   
+\end{align}
+
+セル界面の値$\rho u|_e$をRhie-Chow補間により求める。
+\begin{align}
+ \rho u|_e = \frac{\rho u|_P+\rho u|_E}{2} +
+ \frac{1}{2}(d_P+d_E)(p_P-p_E) - \frac{1}{4}d_P(p_W-p_E) - \frac{1}{4}d_E(p_P-p_{EE})
+\end{align}
+ここで$d_P=\Delta y/\widetilde{a_P}_P$, $d_E=\Delta y/\widetilde{a_P}_E$
+とする。$\widetilde{a_P}_P, \widetilde{a_P}_E$はセルP，Eでの
+$\widetilde{a_P}$である。これより
+\begin{align}
+\rho^* u^{**}|_e=\rho^n u^*|_e - \frac{1}{2}(d_P+d_E)(p_E'-p_P') 
+\end{align}
+質量保存式に代入して，整理すると以下の圧力の方程式が得られる。
+\begin{align}
+& p_P'\left[\frac{\phi(p^n,T^*)}{\Delta t}\Delta x\Delta y + \frac{\Delta y}{2}(d_P+d_E)
+ + \frac{\Delta y}{2}(d_P+d_W) + \frac{\Delta x}{2}(d_P+d_N) +
+ \frac{\Delta x}{2}(d_P+d_S)\right] \nonumber \\
+& = -\Delta y(\rho^n u^*|_e - \rho^n u^*|_w) - \Delta x(\rho^n
+ v^*|_n-\rho^n v^*|_s) 
++\frac{\Delta y}{2}(d_P+d_E)p_E' + \frac{\Delta y}{2}(d_P+d_W)p_W'
+ \nonumber \\ &+
+ \frac{\Delta x}{2}(d_P+d_N)p'_N + \frac{\Delta x}{2}(d_P+d_S)p_S' -
+ \frac{p^n}{\Delta t}(\phi(p^n,T^*) - \phi(p^n, T^n))\Delta x\Delta y
+\end{align}
+%
+ここで$ \rho^* = p^*\phi(p^n, T^*)$であり，
+\begin{align}
+\phi(p^n,T^*) = \frac{1}{RT^*}
+\end{align}
+である。
+
+圧力方程式から$p',p^*$を求め，密度$\rho^*$を求める。次に速度の修正式より
+$u^{**}, v^{**}$を求める。
+
+\subsection{エネルギーの修正}
+\begin{align}
+ a_Pe_P^{**} 
+= \sum_{nb} a_{nb} e_{nb}^* + \frac{\Delta x \Delta y}{\Delta t}\rho^n_P e_P^n
+ +S_e
+\end{align}
+を用いて，エネルギーの修正値$e^{**}_P$を求める。
+
+\subsection{速度の修正}
+2回目の速度の修正を行う。
+速度の修正式を以下のようにする。
+\begin{align}
+ &\frac{a_P}{\rho^*} \rho^{**} u_P^{***} 
+= \sum_{nb} a_{nb} u_{nb}^{**} + \frac{\Delta x \Delta y}{\Delta t}\rho^n u_P^n
+ +S_u - \frac{\Delta y}{2}(p_E^{**} - p_W^{**})\\
+ &\frac{a_P}{\rho^*}\rho^{**} v_P^{***} 
+= \sum_{nb} a_{nb} v_{nb}^{**} + \frac{\Delta x \Delta y}{\Delta t}\rho^n v_P^n
+ +S_v  - \frac{\Delta x}{2}(p_N^{**} - p_S^{**})
+\end{align}
+
+質量保存式より
+\begin{align}
+ \frac{\rho^{**} - \rho^n}{\Delta t} \Delta x \Delta y 
++ \left(\rho^{**} u^{***}|_e - \rho^{**} u^{***}|_w\right)\Delta y 
++ \left(\rho^{**} v^{***}|_n - \rho^{**} v^{***}|_s\right) \Delta x = 0   
+\end{align}
+圧力の方程式を得るため，$\rho^{**}u^{***}|_e$をRhie-Chow補間により求める。
+$\widetilde{a_P^*}=a_P/\rho^{*}$，$d_P^*=\Delta y/\widetilde{a_P^*}_P,
+d_E^*=\Delta y/\widetilde{a_P^*}_E$として
+\begin{align}
+ \rho^{**}u^{***}|_e&=\frac{1}{2}\left[\frac{\sum_{nb}a_{nb}u^{**}_{nb}
+ +S_u +(\Delta x\Delta y/\Delta t)\rho^n_P u_P^n}{\widetilde{a_P^*}_P} 
++ \frac{\sum_{nb}a_{nb}u^{**}_{nb}
+ +S_u + (\Delta x\Delta y/\Delta t)\rho^n_E
+ u_E^n}{\widetilde{a_P^*}_E}\right] \nonumber \\
+& - \frac{1}{2}(d_P^*+d_E^*)(p_E^{**}-p_P^{**})
+\end{align}
+%
+これを質量保存式に代入し，以下の圧力式が得られる。
+\begin{align}
+ & p_P^{**}\left[\frac{\phi(p^*,T^{**})}{\Delta t}\Delta x\Delta y + \frac{\Delta y}{2}(d_P^*+d_E^*)
+ + \frac{\Delta y}{2}(d_P^*+d_W^*) + \frac{\Delta x}{2}(d_P^*+d_N^*) +
+ \frac{\Delta x}{2}(d_P^*+d_S^*)\right] \nonumber \\
+& =  \frac{\rho_P^n}{\Delta t}\Delta x\Delta y+ \frac{\Delta y}{2}(d_P^*+d_E^*)p_E^{**} + \frac{\Delta
+ y}{2}(d_P^*+d_W^*)p_W^{**} +  \frac{\Delta x}{2}(d_P^*+d_N^*)p^{**}_N +
+ \frac{\Delta x}{2}(d_P^*+d_S^*)p_S^{**} \nonumber \\
+& -\frac{\Delta y}{2} \left[\frac{\sum_{nb}a_{nb}u^{**}_{nb}
+ +S_u +(\Delta x\Delta y/\Delta t)\rho^n_E u_E^n}{\widetilde{a_P^*}_E} 
+- \frac{\sum_{nb}a_{nb}u^{**}_{nb}
+ +S_u + (\Delta x\Delta y/\Delta t)\rho^n_W
+ u_W^n}{\widetilde{a_P^*}_W}\right] \nonumber \\
+& -\frac{\Delta x}{2} \left[\frac{\sum_{nb}a_{nb}v^{**}_{nb}
+ +S_v +(\Delta x\Delta y/\Delta t)\rho^n_N v_N^n}{\widetilde{a_P^*}_N} 
+- \frac{\sum_{nb}a_{nb}v^{**}_{nb}
+ +S_v + (\Delta x\Delta y/\Delta t)\rho^n_S
+ v_S^n}{\widetilde{a_P^*}_S}\right] 
+\end{align}
+%
+これより$p^**$を求め$\rho^{**}$が求まる。次に，$u^{***}, v^{***}$を求め
+る。
+
+\subsection{エネルギーの修正}
+\begin{align}
+ a_Pe_P^{***} 
+= \sum_{nb} a_{nb} e_{nb}^{**} + \frac{\Delta x \Delta y}{\Delta t}\rho^n_P e_P^n
+ +S_e
+\end{align}
+を用いて，エネルギーの修正値$e^{***}_P$を求める。
+
+\section{境界条件}
+セルPの座標を$(i,j)$とすると，本解析では$i=1,\dots, nx+2$, $j=1,\dots,
+ny+2$だけ座標点が存在する。流体領域の境界面は$i=1,2$, $i=nx+1, nx+2$,
+$j=1,2$, $j=ny+1, ny+2$の中間面とする。そのため，速度，圧力，温度の境界
+条件を$i=1$のeの界面，$i=nx+2$のwの界面（$i=nx+1$のeの界面），$j=1$のnの界面，$j=ny+2$のsの界
+面（$j=ny+1$のnの界面）に対して設定する必要がある。例として，$i=1$のeの界面ですべりなしとする場合，$u[1,j]=-u[2,j]$,
+$v[1,j]=-v[2,j]$とする。
+
+またこれらの速度の境界条件を圧力の方程式中の$\rho u|_{e, w},\rho
+v|_{n,s}$に対しても反映し，圧力の方程式を修正する必要がある。
+
+\section{例題：Shock Tube}
+例として，衝撃波管を用いる。解析条件は以下。
+\begin{enumerate}
+ \item $x$方向10m，$y$方向1m
+ \item nx=1000, ny=20，時間刻み$10^{-5}$s 
+ \item 流体は空気を想定し，$\gamma=1.4$，分子量$M=0.029$ kg/mol，
+       $R=286.6$J/kg K
+ \item 初期条件: $x<5$m 圧力$10^5$Pa, 温度348.4K, 速度0m/s; $x>5$m 圧力
+       $10^4$Pa，温度278.7K，速度0m/s
+\item 境界条件: すべり壁，壁垂直方向圧力勾配なし，断熱
+\end{enumerate}
+
+初期状態0sから0.06s (600 step) 後の分布が以下。
+\begin{figure}[htbp]
+ \centering
+ \includegraphics[scale=0.5]{plots_uvTp600.png}
+\caption{Pressure, velocity, temperature, density and total energy}
+\end{figure}
 
 %% reference
 \begin{thebibliography}{99}
